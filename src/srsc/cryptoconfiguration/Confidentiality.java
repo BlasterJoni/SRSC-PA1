@@ -1,3 +1,4 @@
+package srsc.cryptoconfiguration;
 
 public class Confidentiality {
     private String spec;

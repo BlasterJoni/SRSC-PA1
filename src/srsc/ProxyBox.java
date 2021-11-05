@@ -1,9 +1,9 @@
-package proxy;
+package srsc;
 
 /* CHANGE TO READ SYMMETRIC AND HMAC
  *
- * This is a very simple (transparent) UDP proxy
- * The proxy can listening on a remote source (server) UDP sender
+ * This is a very simple (transparent) UDP src.srsc.proxy
+ * The src.srsc.proxy can listening on a remote source (server) UDP sender
  * and transparently forward received datagram packets in the
  * delivering endpoint
  *
@@ -17,7 +17,7 @@ package proxy;
  *       Both configurable in the file config.properties
  * 
  * A component to receive the protected streams (in the communication channel used by the SreamingServer for
- * the media dissemination). At the proxy level, the media frames must be processed to be decrypted and to control the
+ * the media dissemination). At the src.srsc.proxy level, the media frames must be processed to be decrypted and to control the
  * required integrity , and then the streams are sent (decrypted – or in clear-format) to be played by the media player tool.
  *
  */
@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 
 class ProxyBox {
     public static void main(String[] args) throws Exception {
-        InputStream inputStream = new FileInputStream("config.properties");
+        InputStream inputStream = new FileInputStream("src/srsc/proxy/config.properties");
         if (inputStream == null) {
             System.err.println("Configuration file not found!");
             System.exit(1);

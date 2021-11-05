@@ -1,0 +1,21 @@
+[
+   {
+      "movie": "the name of the movie",
+      "ppvprice": "value",
+      "cryptographicconfig": {
+         "ciphersuite": {
+            "confidentiality": {
+               "spec": "Ciphersuite spec",
+               "keysize": "keysize",
+               "key": "key",
+               "iv": "iv"
+            },
+            "integrity": {
+               "spec": "Macsuite spec",
+               "keysize": "mackeysize",
+               "key": "mackey"
+            }
+         }
+      }
+   }
+]

@@ -1,3 +1,5 @@
+package srsc.cryptoconfiguration;
+
 public class Integrity {
 
    private String spec;
