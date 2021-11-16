@@ -50,24 +50,14 @@ public class SimplfiedSRTSPDatagramSocket extends DatagramSocket {
     @Override
     public void send(DatagramPacket p) throws IOException {
 
-        // add version
+        byte[] payload = p.getData();
+
         byte version = 0b00010000;
-
-        // add message type
         byte messageType = 0b00000000;
-
         byte versionPlusMsgType = (byte) (version | messageType);
 
-        // add payload size
-        int payloadSize = p.getLength();
-
-        // create header
         int headerSize = Byte.SIZE / 8 + Integer.SIZE / 8;
-        byte[] sadkdpHeader = ByteBuffer.allocate(headerSize).put(versionPlusMsgType)
-                .putInt(payloadSize).array();// new byte[Byte.SIZE/8 + Integer.SIZE/8] ;
-
-        // add payload + mac
-        byte[] payload = p.getData();
+        int payloadSize = p.getLength();
         int macSize = hMac.getMacLength();
 
         try {
@@ -75,19 +65,16 @@ public class SimplfiedSRTSPDatagramSocket extends DatagramSocket {
 
             byte[] cipherText = new byte[cipher.getOutputSize(payloadSize + macSize)];
 
-            int ctLength = cipher.update(p.getData(), 0, payloadSize, cipherText, 0);
+            int ctLength = cipher.update(payload, 0, payloadSize, cipherText, 0);
 
             hMac.init(hMacKey);
             hMac.update(payload, 0, payloadSize);
 
-            byte[] kek = hMac.doFinal();
+            ctLength += cipher.doFinal(hMac.doFinal(), 0, hMac.getMacLength(), cipherText, ctLength);
 
-            ctLength += cipher.doFinal(kek, 0, hMac.getMacLength(), cipherText, ctLength);
+            byte[] packetData = ByteBuffer.allocate(headerSize+ctLength).put(versionPlusMsgType).putInt(payloadSize).put(cipherText).array();           
+            super.send(new DatagramPacket(packetData, packetData.length, p.getSocketAddress()));
 
-            // create packet
-            byte[] packetPayload = ByteBuffer.allocate(headerSize+ctLength).put(sadkdpHeader).put(cipherText).array();
-           
-            super.send(new DatagramPacket(packetPayload, packetPayload.length, p.getSocketAddress()));
         }  catch (Exception e) {
             e.printStackTrace();
             throw new IOException();
@@ -120,10 +107,8 @@ public class SimplfiedSRTSPDatagramSocket extends DatagramSocket {
             hMac.init(hMacKey);
             hMac.update(plainText, 0, payloadSize);
 
-
             byte[] payloadHash = new byte[hMac.getMacLength()];
             System.arraycopy(plainText, payloadSize, payloadHash, 0, payloadHash.length);
-
 
             if(!MessageDigest.isEqual(hMac.doFinal(), payloadHash)){
                 throw new Exception();
@@ -131,6 +116,7 @@ public class SimplfiedSRTSPDatagramSocket extends DatagramSocket {
             else{
                 //p.setData(plainText, 0, payloadSize); // isto troca a referencia do array q tem la dentro pa uma referencia do plaintext
                 System.arraycopy(plainText, 0, packetDataArray, 0, payloadSize); // isto copia o valor das coisas po array q ja la ta
+                p.setLength(payloadSize);
             }
         } catch (Exception e) {
             e.printStackTrace();
