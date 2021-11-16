@@ -2,7 +2,7 @@ package srsc;
 
 import java.io.*;
 import java.net.*;
-import srsc.srtsp.SimplfiedSRTSPDatagramSocket;
+import srsc.srtsp.SRTSPDatagramSocket;
 
 class StreamingServer {
 
@@ -19,7 +19,7 @@ class StreamingServer {
 		DataInputStream g = new DataInputStream(new FileInputStream(args[0]));
 		byte[] buff = new byte[4096];
 
-		DatagramSocket s = new SimplfiedSRTSPDatagramSocket();
+		DatagramSocket s = new SRTSPDatagramSocket();
 		InetSocketAddress addr = new InetSocketAddress(args[1], Integer.parseInt(args[2]));
 		DatagramPacket p = new DatagramPacket(buff, buff.length, addr);
 		long t0 = System.nanoTime(); // tempo de referencia para este processo

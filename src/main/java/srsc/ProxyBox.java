@@ -34,7 +34,7 @@ import java.util.Arrays;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
-import srsc.srtsp.SimplfiedSRTSPDatagramSocket;
+import srsc.srtsp.SRTSPDatagramSocket;
 
 class ProxyBox {
     public static void main(String[] args) throws Exception {
@@ -52,7 +52,7 @@ class ProxyBox {
         Set<SocketAddress> outSocketAddressSet = Arrays.stream(destinations.split(",")).map(s -> parseSocketAddress(s))
                 .collect(Collectors.toSet());
 
-        DatagramSocket inSocket = new SimplfiedSRTSPDatagramSocket(inSocketAddress);
+        DatagramSocket inSocket = new SRTSPDatagramSocket(inSocketAddress);
         DatagramSocket outSocket = new DatagramSocket();
         byte[] buffer = new byte[4 * 1024];
 

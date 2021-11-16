@@ -16,7 +16,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-public class SimplfiedSRTSPDatagramSocket extends DatagramSocket {
+public class SRTSPDatagramSocket extends DatagramSocket {
 
     byte[] keyBytes = new byte[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d,
             0x0e, 0x0f };
@@ -27,7 +27,7 @@ public class SimplfiedSRTSPDatagramSocket extends DatagramSocket {
     Key hMacKey;
     IvParameterSpec ivSpec;
 
-    public SimplfiedSRTSPDatagramSocket() throws Exception {
+    public SRTSPDatagramSocket() throws Exception {
         super();
         key = new SecretKeySpec(keyBytes, "RC4");
         cipher = Cipher.getInstance("RC4");
@@ -37,7 +37,7 @@ public class SimplfiedSRTSPDatagramSocket extends DatagramSocket {
         // ivSpec = null;
     }
 
-    public SimplfiedSRTSPDatagramSocket(SocketAddress inSocketAddress) throws Exception {
+    public SRTSPDatagramSocket(SocketAddress inSocketAddress) throws Exception {
         super(inSocketAddress);
         key = new SecretKeySpec(keyBytes, "RC4");
         cipher = Cipher.getInstance("RC4");

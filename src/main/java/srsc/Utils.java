@@ -2,6 +2,7 @@ package srsc;
 
 
 
+import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
@@ -128,5 +129,9 @@ public class Utils
         }
         
         return bytes;
+    }
+
+    public static byte[] toByteArray(int i){
+        return ByteBuffer.allocate(4).putInt(i).array();
     }
 }
