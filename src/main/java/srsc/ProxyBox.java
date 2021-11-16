@@ -34,10 +34,11 @@ import java.util.Arrays;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
+import srsc.srtsp.SimplfiedSRTSPDatagramSocket;
 
 class ProxyBox {
     public static void main(String[] args) throws Exception {
-        InputStream inputStream = new FileInputStream("src/srsc/proxy/config.properties");
+        InputStream inputStream = new FileInputStream("src/main/resources/config.properties");
         if (inputStream == null) {
             System.err.println("Configuration file not found!");
             System.exit(1);
@@ -51,7 +52,7 @@ class ProxyBox {
         Set<SocketAddress> outSocketAddressSet = Arrays.stream(destinations.split(",")).map(s -> parseSocketAddress(s))
                 .collect(Collectors.toSet());
 
-        DatagramSocket inSocket = new DatagramSocket(inSocketAddress);
+        DatagramSocket inSocket = new SimplfiedSRTSPDatagramSocket(inSocketAddress);
         DatagramSocket outSocket = new DatagramSocket();
         byte[] buffer = new byte[4 * 1024];
 
