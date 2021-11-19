@@ -30,15 +30,21 @@ import java.net.MulticastSocket;
 import java.net.InetSocketAddress;
 import java.net.InetAddress;
 import java.net.SocketAddress;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import srsc.sadkdp.SADKDP;
+import srsc.sadkdp.jsonEntities.TicketCredentials;
+import srsc.sadkdp.jsonEntities.TicketCredentialsReturn;
 import srsc.srtsp.SRTSPDatagramSocket;
 
 class ProxyBox {
     public static void main(String[] args) throws Exception {
-        InputStream inputStream = new FileInputStream("src/main/resources/config.properties");
+        InputStream inputStream = new FileInputStream("./src/main/resources/config.properties");
         if (inputStream == null) {
             System.err.println("Configuration file not found!");
             System.exit(1);
@@ -47,6 +53,12 @@ class ProxyBox {
         properties.load(inputStream);
         String remote = properties.getProperty("remote");
         String destinations = properties.getProperty("localdelivery");
+
+        if (args.length != 6) {
+			System.out.println("Erro, usar: ProxyBox <movieId> <username> <password> <keystore> <keystore-password> <ProxyInfo>");
+			System.exit(-1);
+		}
+        TicketCredentialsReturn ticketCredentials = new SADKDP(args[3], args[4]).getTicket("localhost", "42069", args[1], args[2], new String(Files.readAllBytes(Paths.get(args[5]))), args[0]);
 
         SocketAddress inSocketAddress = parseSocketAddress(remote);
         Set<SocketAddress> outSocketAddressSet = Arrays.stream(destinations.split(",")).map(s -> parseSocketAddress(s))

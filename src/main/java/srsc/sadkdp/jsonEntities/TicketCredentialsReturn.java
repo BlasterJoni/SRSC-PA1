@@ -1,22 +1,25 @@
 package srsc.sadkdp.jsonEntities;
 
+import javax.crypto.Cipher;
+
 import srsc.configEntities.Ciphersuite;
 
-public class TicketCredentials {
+public class TicketCredentialsReturn {
     private String ip, port, movieId;
     private Ciphersuite ciphersuiteConf;
     private int n4_;
-    private byte[] sessionKey;
+    private byte[] sessionKey, streamTicket;
 
-    public TicketCredentials() {
+    public TicketCredentialsReturn() {
     }
 
-    public TicketCredentials(String ip, String port, String movieId, Ciphersuite ciphersuiteConf, byte[] sessionKey, int n4_) {
+    public TicketCredentialsReturn(String ip, String port, String movieId, Ciphersuite ciphersuiteConf, byte[] sessionKey, int n4_, byte[] streamTicket) {
         this.ip = ip;
         this.port = port;
         this.movieId = movieId;
         this.ciphersuiteConf = ciphersuiteConf;
         this.sessionKey = sessionKey;
+        this.streamTicket = streamTicket;
         this.n4_ = n4_;
     }
 
@@ -67,6 +70,14 @@ public class TicketCredentials {
 
     public void setSessionKey(byte[] sessionKey) {
         this.sessionKey = sessionKey;
+    }
+
+    public byte[] getStreamTicket() {
+        return this.streamTicket;
+    }
+
+    public void setStreamTicket(byte[] streamTicket) {
+        this.streamTicket = streamTicket;
     }
     
     

@@ -11,7 +11,13 @@ import srsc.sadkdp.SADKDP;
 public class SignalingServer {
 
     static public void main(String[] args) throws Exception {
-        
+        if (args.length != 4) {
+			System.out.println("Erro, usar: SignalingServer <keystore> <keystore-password> <userproxies> <ciphermovies>");
+			System.exit(-1);
+		}
+
+        SADKDP server = new SADKDP(args[0], args[1]); //keystore, keystorepassword
+        server.startServer(42069, args[2], args[3]); //port, userproxies, ciphermovies
     }
     
 }

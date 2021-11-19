@@ -1,15 +1,15 @@
-package srsc.cryptoconfiguration;
+package srsc.configEntities;
 
 public class Confidentiality {
     private String spec;
     private int keysize;
-    private String key;
+    private byte[] key;
     private byte[] iv;
 
     public Confidentiality() {
     }
 
-    public Confidentiality(String spec, int keysize, String key, byte[] iv) {
+    public Confidentiality(String spec, int keysize, byte[] key, byte[] iv) {
         this.spec = spec;
         this.keysize = keysize;
         this.key = key;
@@ -32,11 +32,11 @@ public class Confidentiality {
         this.keysize = keysize;
     }
 
-    public String getKey() {
+    public byte[] getKey() {
         return this.key;
     }
 
-    public void setKey(String key) {
+    public void setKey(byte[] key) {
         this.key = key;
     }
 

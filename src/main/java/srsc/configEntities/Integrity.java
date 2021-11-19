@@ -1,15 +1,15 @@
-package srsc.cryptoconfiguration;
+package srsc.configEntities;
 
 public class Integrity {
 
    private String spec;
    private int keysize;
-   private String key;
+   private byte[] key;
 
     public Integrity(){
     }
 
-   public Integrity(String spec, int keysize, String key){
+   public Integrity(String spec, int keysize, byte[] key){
        this.spec = spec;
        this.keysize = keysize;
        this.key = key;
@@ -31,11 +31,11 @@ public class Integrity {
         this.keysize = keysize;
     }
 
-    public String getKey() {
+    public byte[] getKey() {
         return this.key;
     }
 
-    public void setKey(String key) {
+    public void setKey(byte[] key) {
         this.key = key;
     }
 

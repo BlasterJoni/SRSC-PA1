@@ -1,7 +1,7 @@
-[
-    {
+{
+    "username": {
         "username": "username",
-        "password": "H(pwd) //hash value of the pwd or passphrase: recommendation, use SHA-256, or if you want you can use double-hashing construction w/ differeht Hash functions",
-        "proxyBoxID": "proxyBoxID"
+        "password": "password",
+        "proxyBoxID": "3056301006072a8648ce3d020106052b8104000a034200040fefe985a2b8f7068f1dd3649d5b0e5f9b9a40756b2c53a6228f815a13c952162b04ceb93eed7c0969af251aec62cdc75d4f500e53f6200ee558b1dcf3af6a5c99335915"
     }
-]
+}
