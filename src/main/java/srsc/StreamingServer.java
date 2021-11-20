@@ -2,25 +2,33 @@ package srsc;
 
 import java.io.*;
 import java.net.*;
+
+import srsc.srtsp.jsonEntities.TicketCredentials;
+import srsc.srtsp.SRTSP;
 import srsc.srtsp.SRTSPDatagramSocket;
 
 class StreamingServer {
 
 	static public void main(String[] args) throws Exception {
-		if (args.length != 3) {
-			System.out.println("Erro, usar: mySend <movie> <ip-multicast-address> <port>");
-			System.out.println("        or: mySend <movie> <ip-unicast-address> <port>");
+		if (args.length != 2) {
+			System.out.println("Erro, usar: StreamingServer <keystore> <keystore-password>");
+			System.out.println("        or: StreamingServer <keystore> <keystore-password>");
 			System.exit(-1);
 		}
+
+		SRTSP srtsp = new SRTSP(args[0], args[1]);
+		TicketCredentials tc = srtsp.startReceiveTicket(42169);
 
 		int size;
 		int count = 0;
 		long time;
-		DataInputStream g = new DataInputStream(new FileInputStream(args[0]));
+		System.out.println(System.getProperty("user.dir"));
+		System.out.println("./src/main/resources/" + tc.getMovieId() +".dat");
+		DataInputStream g = new DataInputStream(new FileInputStream("./src/main/resources/movies/" + tc.getMovieId() +".dat"));
 		byte[] buff = new byte[4096];
 
 		DatagramSocket s = new SRTSPDatagramSocket();
-		InetSocketAddress addr = new InetSocketAddress(args[1], Integer.parseInt(args[2]));
+		InetSocketAddress addr = srtsp.getClientAddress();
 		DatagramPacket p = new DatagramPacket(buff, buff.length, addr);
 		long t0 = System.nanoTime(); // tempo de referencia para este processo
 		long q0 = 0;
@@ -39,7 +47,10 @@ class StreamingServer {
 
 			// send packet (with a frame payload)
 			// Frames sent in clear (no encryption)
-			s.send(p);
+			if(count==1)
+				srtsp.sendFirstFrame(buff, size, tc);
+			else
+				s.send(p);
 			System.out.print(".");
 		}
 

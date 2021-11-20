@@ -41,6 +41,7 @@ import srsc.sadkdp.SADKDP;
 import srsc.sadkdp.jsonEntities.TicketCredentials;
 import srsc.sadkdp.jsonEntities.TicketCredentialsReturn;
 import srsc.srtsp.SRTSPDatagramSocket;
+import srsc.srtsp.SRTSP;
 
 class ProxyBox {
     public static void main(String[] args) throws Exception {
@@ -58,8 +59,7 @@ class ProxyBox {
 			System.out.println("Erro, usar: ProxyBox <movieId> <username> <password> <keystore> <keystore-password> <ProxyInfo>");
 			System.exit(-1);
 		}
-        TicketCredentialsReturn ticketCredentials = new SADKDP(args[3], args[4]).getTicket("localhost", "42069", args[1], args[2], new String(Files.readAllBytes(Paths.get(args[5]))), args[0]);
-
+        
         SocketAddress inSocketAddress = parseSocketAddress(remote);
         Set<SocketAddress> outSocketAddressSet = Arrays.stream(destinations.split(",")).map(s -> parseSocketAddress(s))
                 .collect(Collectors.toSet());
@@ -67,6 +67,13 @@ class ProxyBox {
         DatagramSocket inSocket = new SRTSPDatagramSocket(inSocketAddress);
         DatagramSocket outSocket = new DatagramSocket();
         byte[] buffer = new byte[4 * 1024];
+
+        TicketCredentialsReturn ticketCredentials = new SADKDP(args[3], args[4]).getTicket("localhost", "42069", args[1], args[2], new String(Files.readAllBytes(Paths.get(args[5]))), args[0]);
+        byte[] frame = new SRTSP(args[3], args[4]).requestMovie(ticketCredentials);
+        System.out.print("*");
+        for (SocketAddress outSocketAddress : outSocketAddressSet) {
+            outSocket.send(new DatagramPacket(buffer, frame.length, outSocketAddress));
+        }
 
         while (true) {
             DatagramPacket inPacket = new DatagramPacket(buffer, buffer.length);

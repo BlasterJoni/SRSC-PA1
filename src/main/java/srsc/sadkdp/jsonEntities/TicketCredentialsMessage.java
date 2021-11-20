@@ -3,15 +3,16 @@ package srsc.sadkdp.jsonEntities;
 public class TicketCredentialsMessage {
     private byte[] ticketForProxyBox;
     private byte[] ticketForStreamingServer;
-    private byte[] signature;
+    private byte[] signatureProxyBox, signatureStreamingServer;
 
     public TicketCredentialsMessage(){
     }
 
-    public TicketCredentialsMessage(byte[] ticketForProxyBox, byte[] ticketForStreamingServer, byte[] signature){
+    public TicketCredentialsMessage(byte[] ticketForProxyBox, byte[] ticketForStreamingServer, byte[] signatureProxyBox, byte[] signatureStreamingServer){
         this.ticketForProxyBox = ticketForProxyBox;
         this.ticketForStreamingServer = ticketForStreamingServer;
-        this.signature = signature;
+        this.signatureProxyBox = signatureProxyBox;
+        this.signatureStreamingServer = signatureStreamingServer;
     }
 
     public byte[] getTicketForProxyBox() {
@@ -30,12 +31,20 @@ public class TicketCredentialsMessage {
         this.ticketForStreamingServer = ticketForStreamingServer;
     }
 
-    public byte[] getSignature() {
-        return this.signature;
+    public byte[] getSignatureProxyBox() {
+        return this.signatureProxyBox;
     }
 
-    public void setSignature(byte[] signature) {
-        this.signature = signature;
+    public void setSignatureProxyBox(byte[] signatureProxyBox) {
+        this.signatureProxyBox = signatureProxyBox;
+    }
+
+    public byte[] getSignatureStreamingServer() {
+        return this.signatureStreamingServer;
+    }
+
+    public void setSignatureStreamingServer(byte[] signatureStreamingServer) {
+        this.signatureStreamingServer = signatureStreamingServer;
     }
     
 }

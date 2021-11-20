@@ -173,10 +173,10 @@ public class SADKDP {
         byte version = (byte) (0b11110000 & versionPlusMsgType);
         byte messageType = (byte) (0b00001111 & versionPlusMsgType);
 
-        int encryptedpPayloadSize = dataBuff.getInt();
-        byte[] encryptedPayload = new byte[encryptedpPayloadSize];
+        int encryptedPayloadSize = dataBuff.getInt();
+        byte[] encryptedPayload = new byte[encryptedPayloadSize];
         dataBuff.get(encryptedPayload);
-        byte[] integrityCheck = new byte[data.length - HEADERSIZE - encryptedpPayloadSize];
+        byte[] integrityCheck = new byte[data.length - HEADERSIZE - encryptedPayloadSize];
         dataBuff.get(integrityCheck);
 
         if (version != VERSION || messageType != MESSAGE_3)
@@ -352,11 +352,11 @@ public class SADKDP {
         return returnObj;
     }
 
-    public String encodeMessage6(String password, String ip, String port, String movieId, Ciphersuite ciphersuitConf, byte[] sessionKey,
+    public String encodeMessage6(String password, String ip, String port, String movieId, Ciphersuite ciphersuitConf, byte[] sessionKey, byte[] sessionIV, byte[] macKey,
             int n4_, int nc1) throws Exception {
         byte versionPlusMsgType = (byte) (VERSION | MESSAGE_6);
 
-        TicketCredentials content1 = new TicketCredentials(ip, port, movieId, ciphersuitConf, sessionKey, n4_);
+        TicketCredentials content1 = new TicketCredentials(ip, port, movieId, ciphersuitConf, sessionKey, sessionIV, macKey, n4_);
         String message1 = gson.toJson(content1);
         byte[] payload1 = Utils.toByteArray(message1);
 
@@ -364,8 +364,15 @@ public class SADKDP {
         cipher.init(Cipher.ENCRYPT_MODE, ks.getCertificate("proxybox").getPublicKey());
         byte[] encryptedPayload1 = cipher.doFinal(payload1);
         int encryptedPayloadSize1 = encryptedPayload1.length;
+        
+        Signature signature1 = Signature.getInstance("SHA512withECDSA", "BC");
+        signature1.initSign((PrivateKey) ks.getKey("signalingserver", keyStorePassword.toCharArray()));
+        // signature.initSign(((PrivateKeyEntry) ks.getEntry("signalingserver", new
+        // PasswordProtection(keyStorePassword.toCharArray()))).getPrivateKey());
+        signature1.update(encryptedPayload1);
+        byte[] sigBytes1 = signature1.sign();
 
-        TicketCredentials content2 = new TicketCredentials(ip, port, movieId, ciphersuitConf, sessionKey, nc1);
+        TicketCredentials content2 = new TicketCredentials(ip, port, movieId, ciphersuitConf, sessionKey, sessionIV, macKey, nc1);
         String message2 = gson.toJson(content2);
         byte[] payload2 = Utils.toByteArray(message2);
 
@@ -374,15 +381,14 @@ public class SADKDP {
         byte[] encryptedPayload2 = cipher.doFinal(payload2);
         int encryptedPayloadSize2 = encryptedPayload2.length;
 
-        Signature signature = Signature.getInstance("SHA512withECDSA", "BC");
-        signature.initSign((PrivateKey) ks.getKey("signalingserver", keyStorePassword.toCharArray()));
+        Signature signature2 = Signature.getInstance("SHA512withECDSA", "BC");
+        signature2.initSign((PrivateKey) ks.getKey("signalingserver", keyStorePassword.toCharArray()));
         // signature.initSign(((PrivateKeyEntry) ks.getEntry("signalingserver", new
         // PasswordProtection(keyStorePassword.toCharArray()))).getPrivateKey());
-        signature.update(ByteBuffer.allocate(encryptedPayloadSize1 + encryptedPayloadSize2).put(encryptedPayload1)
-                .put(encryptedPayload2).array());
-        byte[] sigBytes = signature.sign();
+        signature2.update(encryptedPayload2);
+        byte[] sigBytes2 = signature2.sign();
 
-        TicketCredentialsMessage content = new TicketCredentialsMessage(encryptedPayload1, encryptedPayload2, sigBytes);
+        TicketCredentialsMessage content = new TicketCredentialsMessage(encryptedPayload1, encryptedPayload2, sigBytes1, sigBytes2);
         String message = gson.toJson(content);
         byte[] payload = Utils.toByteArray(message);
         int payloadSize = payload.length;
@@ -434,10 +440,16 @@ public class SADKDP {
         byte[] tpb = tcm.getTicketForProxyBox();
         byte[] tss = tcm.getTicketForStreamingServer();
 
-        Signature signature = Signature.getInstance("SHA512withECDSA", "BC");
-        signature.initVerify(ks.getCertificate("signalingserver").getPublicKey());
-        signature.update(ByteBuffer.allocate(tpb.length + tss.length).put(tpb).put(tss).array());
-        if (!signature.verify(tcm.getSignature()))
+        Signature signature1 = Signature.getInstance("SHA512withECDSA", "BC");
+        signature1.initVerify(ks.getCertificate("signalingserver").getPublicKey());
+        signature1.update(tpb);
+        if (!signature1.verify(tcm.getSignatureProxyBox()))
+            throw new Exception();
+
+        Signature signature2 = Signature.getInstance("SHA512withECDSA", "BC");
+        signature2.initVerify(ks.getCertificate("signalingserver").getPublicKey());
+        signature2.update(tss);
+        if (!signature2.verify(tcm.getSignatureStreamingServer()))
             throw new Exception();
 
         Cipher cipher = Cipher.getInstance("ECIES", "BC");
@@ -447,8 +459,8 @@ public class SADKDP {
         TicketCredentials tpbObj = gson.fromJson(messageTPB, TicketCredentials.class);
 
         return new TicketCredentialsReturn(tpbObj.getIp(), tpbObj.getPort(), tpbObj.getMovieId(),
-                tpbObj.getCiphersuiteConf(), tpbObj.getSessionKey(), tpbObj.getN4_(),
-                tcm.getTicketForStreamingServer());
+                tpbObj.getCiphersuiteConf(), tpbObj.getSessionKey(), tpbObj.getSessionIV(), tpbObj.getMacKey(), tpbObj.getN4_(),
+                tcm.getTicketForStreamingServer(), tcm.getSignatureStreamingServer());
     }
 
     public void startServer(int port, String pathToUserProxiesJSON, String pathToCipherMoviesJSON) throws Exception {
@@ -502,9 +514,14 @@ public class SADKDP {
 
             KeyGenerator kg = KeyGenerator.getInstance("AES");
             kg.init(256);
-            SecretKey key = kg.generateKey();
-            String ticketcredentials = encodeMessage6(password, "localhost", "9999", movie.getMovie(), movie.getCiphersuite(),
-                    key.getEncoded(), payment.getN4() + 1, 0);
+            SecretKey sessionKey = kg.generateKey();
+            SecretKey macKey = kg.generateKey();
+
+            byte[] iv = new byte[16];
+            new SecureRandom().nextBytes(iv);
+
+            String ticketcredentials = encodeMessage6(password, "localhost", "42169", movie.getMovie(), movie.getCiphersuite(),
+                    sessionKey.getEncoded(), iv, macKey.getEncoded(), payment.getN4() + 1, 0);
             out.write(ticketcredentials);
             out.newLine();
             out.flush();
@@ -562,7 +579,7 @@ public class SADKDP {
     private int newNounce() {
         int random;
         do {
-            random = new Random().nextInt();
+            random = new SecureRandom().nextInt();
         } while (nounces.contains(random));
 
         nounces.add(random);

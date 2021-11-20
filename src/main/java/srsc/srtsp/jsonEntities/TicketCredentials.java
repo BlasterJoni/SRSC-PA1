@@ -1,30 +1,27 @@
-package srsc.sadkdp.jsonEntities;
-
-import javax.crypto.Cipher;
+package srsc.srtsp.jsonEntities;
 
 import srsc.configEntities.Ciphersuite;
 
-public class TicketCredentialsReturn {
+public class TicketCredentials {
     private String ip, port, movieId;
     private Ciphersuite ciphersuiteConf;
     private int n4_;
-    private byte[] sessionKey, sessionIV, streamTicket, streamSigBytes, macKey;
+    private byte[] sessionIV, sessionKey, macKey;
 
-    public TicketCredentialsReturn() {
+    public TicketCredentials() {
     }
 
-    public TicketCredentialsReturn(String ip, String port, String movieId, Ciphersuite ciphersuiteConf, byte[] sessionKey, byte[] sessionIV, byte[] macKey, int n4_, byte[] streamTicket, byte[] streamSigBytes) {
+    public TicketCredentials(String ip, String port, String movieId, Ciphersuite ciphersuiteConf, byte[] sessionKey, byte[] sessionIV, byte[] macKey, int n4_) {
         this.ip = ip;
         this.port = port;
         this.movieId = movieId;
         this.ciphersuiteConf = ciphersuiteConf;
-        this.sessionKey = sessionKey;
-        this.streamTicket = streamTicket;
-        this.streamSigBytes = streamSigBytes;
         this.sessionIV = sessionIV;
+        this.sessionKey = sessionKey;
         this.macKey = macKey;
         this.n4_ = n4_;
     }
+
 
     public String getIp() {
         return this.ip;
@@ -66,14 +63,6 @@ public class TicketCredentialsReturn {
         this.n4_ = n4_;
     }
 
-    public byte[] getSessionKey() {
-        return this.sessionKey;
-    }
-
-    public void setSessionKey(byte[] sessionKey) {
-        this.sessionKey = sessionKey;
-    }
-
     public byte[] getSessionIV() {
         return this.sessionIV;
     }
@@ -82,20 +71,12 @@ public class TicketCredentialsReturn {
         this.sessionIV = sessionIV;
     }
 
-    public byte[] getStreamTicket() {
-        return this.streamTicket;
+    public byte[] getSessionKey() {
+        return this.sessionKey;
     }
 
-    public void setStreamTicket(byte[] streamTicket) {
-        this.streamTicket = streamTicket;
-    }
-
-     public byte[] getStreamSigBytes() {
-        return this.streamSigBytes;
-    }
-
-    public void setStreamSigBytes(byte[] streamSigBytes) {
-        this.streamSigBytes = streamSigBytes;
+    public void setSessionKey(byte[] sessionKey) {
+        this.sessionKey = sessionKey;
     }
 
     public byte[] getMacKey() {
@@ -105,7 +86,5 @@ public class TicketCredentialsReturn {
     public void setMacKey(byte[] macKey) {
         this.macKey = macKey;
     }
-    
-    
     
 }
