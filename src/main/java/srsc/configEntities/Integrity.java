@@ -11,9 +11,9 @@ public class Integrity {
     public Integrity(){
     }
 
-   public Integrity(String spec, String key, String keyspec){
+   public Integrity(String spec, byte[] key, String keyspec){
        this.spec = spec;
-       this.key = key;
+       this.key = Utils.toHex(key);
        this.keyspec = keyspec;
    }
 
@@ -25,14 +25,6 @@ public class Integrity {
         this.spec = spec;
     }
 
-    public String getKey() {
-        return this.key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
-    }
-
     public String getKeySpec() {
         return this.keyspec;
     }
@@ -41,11 +33,11 @@ public class Integrity {
         this.key = keyspec;
     }
 
-    public byte[] getKeyByte() {
+    public byte[] getKey() {
         return Utils.hexStringToByteArray(this.key);
     }
 
-    public void setKeyByte(byte[] key) {
+    public void setKey(byte[] key) {
         this.key = Utils.toHex(key);
     }
 

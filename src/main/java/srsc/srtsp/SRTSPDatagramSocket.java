@@ -1,5 +1,6 @@
 package srsc.srtsp;
 
+import srsc.Utils;
 import srsc.configEntities.Ciphersuite;
 
 import java.io.IOException;
@@ -26,22 +27,22 @@ public class SRTSPDatagramSocket extends DatagramSocket {
 
     public SRTSPDatagramSocket(Ciphersuite c) throws Exception {
         super();
-        key = new SecretKeySpec(c.getConfidentiality().getKeyByte(), c.getConfidentiality().getKeySpec());
+        key = new SecretKeySpec(c.getConfidentiality().getKey(), c.getConfidentiality().getKeySpec());
         if(c.getConfidentiality().getIv()!=null)
-            ivSpec = new IvParameterSpec(c.getConfidentiality().getIvByte());
+            ivSpec = new IvParameterSpec(c.getConfidentiality().getIv());
         cipher = Cipher.getInstance(c.getConfidentiality().getSpec());
         hMac = Mac.getInstance(c.getIntegrity().getSpec());
-        hMacKey = new SecretKeySpec(c.getIntegrity().getKeyByte(), c.getIntegrity().getKeySpec());
+        hMacKey = new SecretKeySpec(c.getIntegrity().getKey(), c.getIntegrity().getKeySpec());
     }
 
     public SRTSPDatagramSocket(SocketAddress inSocketAddress, Ciphersuite c) throws Exception {
         super(inSocketAddress);
-        key = new SecretKeySpec(c.getConfidentiality().getKeyByte(), c.getConfidentiality().getKeySpec());
+        key = new SecretKeySpec(c.getConfidentiality().getKey(), c.getConfidentiality().getKeySpec());
         if(c.getConfidentiality().getIv()!=null)
-            ivSpec = new IvParameterSpec(c.getConfidentiality().getIvByte());
+            ivSpec = new IvParameterSpec(c.getConfidentiality().getIv());
         cipher = Cipher.getInstance(c.getConfidentiality().getSpec());
         hMac = Mac.getInstance(c.getIntegrity().getSpec());
-        hMacKey = new SecretKeySpec(c.getIntegrity().getKeyByte(), c.getIntegrity().getKeySpec());
+        hMacKey = new SecretKeySpec(c.getIntegrity().getKey(), c.getIntegrity().getKeySpec());
     }
 
     @Override

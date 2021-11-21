@@ -1,0 +1,18 @@
+{
+    "issuedCoin": {
+        "signedCoin": {
+            "coin": {
+                "name": "PPVMovieCoin",
+                "coinIssuer": "BancoBank",
+                "coinValue": 10,
+                "expireDate": "2022-11-21"
+            },
+            "coinPublicKey": "3055301306072a8648ce3d020106082a8648ce3d030104033e0004240bebec6c7dbb82f26f08013954cb4e0e772bfd7348ee15c3e8ad3bfb0d6fb9c7ccca8fc0efe75e709fa6bfe5d1f2e986583bbb865b254074584b22",
+            "coinAuthenticity": "3040021e4f419ee10b132f78bbf126abb565c65cf46d2925d0dcd88d55f53eb835e7021e5951fbc6c9f0fecd10a7d84fcaf30a58cd7d3db10786369d44397ffd3f10"
+        },
+        "issueSignature": "304402206c0fc3f82670ec73054ea2ece353a32e8ae73172b503c81fa36434084206e228022030b2bab0e3e54d37faade76ffcf4c2f2642f74f425312c2e2466c5ef574556ec",
+        "issuePublicKey": "3056301006072a8648ce3d020106052b8104000a03420004b8897e3ebda9d9dd753ba72fd05912f3bb9f3202d70f68dc2c27b2d0fa7ff713171b5084b13b24875dd1b35d4c7def219546d40da1fcd6e6744a22358e73545c"
+    },
+    "integrityProof1": "f08ddb4f94098e93dc419c4af9c9a4d57133e258902846aa5f55c2d44e49dde1",
+    "integrityProof2": "7984e9c78ea0db7379f4362e03cafd14eed1184889b190efac2193e96670497627123553a5a8ee5c08bea2a96ce96503b44a48b9f5d23b988ccd6a3c90648d67"
+}

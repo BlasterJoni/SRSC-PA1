@@ -11,11 +11,11 @@ public class Confidentiality {
     public Confidentiality() {
     }
 
-    public Confidentiality(String spec, String key, String keyspec, String iv) {
+    public Confidentiality(String spec, byte[] key, String keyspec, byte[] iv) {
         this.spec = spec;
-        this.key = key;
+        this.key = Utils.toHex(key);
         this.keyspec = keyspec;
-        this.iv = iv;
+        this.iv = Utils.toHex(iv);
     }
     
     public String getSpec() {
@@ -26,19 +26,11 @@ public class Confidentiality {
         this.spec = spec;
     }
 
-    public String getKey() {
-        return this.key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
-    }
-
-    public byte[] getKeyByte() {
+    public byte[] getKey() {
         return Utils.hexStringToByteArray(this.key);
     }
 
-    public void setKeyByte(byte[] key) {
+    public void setKey(byte[] key) {
         this.key = Utils.toHex(key);
     }
 
@@ -50,19 +42,11 @@ public class Confidentiality {
         this.key = keyspec;
     }
 
-    public String getIv() {
-        return this.iv;
-    }
-
-    public void setIv(String iv) {
-        this.iv = iv;
-    }
-
-    public byte[] getIvByte() {
+    public byte[] getIv() {
         return Utils.hexStringToByteArray(this.iv);
     }
 
-    public void setIvByte(byte[] iv) {
+    public void setIv(byte[] iv) {
         this.iv = Utils.toHex(iv);
     }
 

@@ -463,6 +463,59 @@ public class SADKDP {
                 tcm.getTicketForStreamingServer(), tcm.getSignatureStreamingServer());
     }
 
+    public String encodeError(String password, byte messageType, String errorCode) throws Exception {
+
+        byte versionPlusMsgType = (byte) (VERSION | messageType);
+
+        ErrorAlert errorAlert = new ErrorAlert(messageType, errorCode);
+        String message = gson.toJson(errorAlert);
+        byte[] payload = Utils.toByteArray(message);
+        int payloadSize = payload.length;
+
+        Mac hMac = Mac.getInstance("HmacSHA512");
+        Key hMacKey = new SecretKeySpec(password.getBytes(), "HmacSHA512");
+        int intCheckSize = hMac.getMacLength();
+        hMac.init(hMacKey);
+        hMac.update(Utils.toByteArray(errorAlert.toString()));
+        byte[] integrityCheck = hMac.doFinal();
+
+        byte[] toRet = ByteBuffer.allocate(HEADERSIZE + payloadSize + intCheckSize).put(versionPlusMsgType)
+                .putInt(payloadSize).put(payload).put(integrityCheck).array();
+
+        System.out.println("Error message sent: " + Utils.toHex(toRet));
+
+        return Utils.toHex(toRet);
+    }
+
+    public void decodeError(String password, String dataString) throws Exception {
+
+        byte[] data = Utils.hexStringToByteArray(dataString);
+        System.out.println("Msg Received: " + Utils.toHex(data));
+        ByteBuffer dataBuff = ByteBuffer.wrap(data);
+
+        byte versionPlusMsgType = dataBuff.get();
+        byte version = (byte) (0b11110000 & versionPlusMsgType);
+        byte messageType = (byte) (0b00001111 & versionPlusMsgType);
+
+        if (version != VERSION || (messageType != MESSAGE_90 && messageType != MESSAGE_91))
+            return;
+
+        int payloadSize = dataBuff.getInt();
+        byte[] payload = new byte[payloadSize];
+        dataBuff.get(payload);
+        byte[] integrityCheck = new byte[data.length - HEADERSIZE - payloadSize];
+        dataBuff.get(integrityCheck);
+
+        Mac hMac = Mac.getInstance("HmacSHA512");
+        Key hMacKey = new SecretKeySpec(password.getBytes(), "HmacSHA512");
+        hMac.init(hMacKey);
+        hMac.update(Utils.toByteArray(dataString));
+        if (!MessageDigest.isEqual(hMac.doFinal(), integrityCheck)) {
+            throw new Exception();
+        }
+        
+    }
+
     public void startServer(int port, String pathToUserProxiesJSON, String pathToCipherMoviesJSON) throws Exception {
 
         Map<String, UserProxy> users = getUsers(pathToUserProxiesJSON);
