@@ -4,15 +4,65 @@
       "ppvprice": "5",
       "ciphersuite": {
          "confidentiality": {
-            "spec": "Ciphersuite spec",
-            "keysize": 0,
-            "key": [],
-            "iv": []
+            "spec": "RC4",
+            "keyspec": "RC4",
+            "key": "1b86598c673c37b084480ac840fd471dd2116b0ab39d8b4c75b3f00fb14e94a4"
          },
          "integrity": {
-            "spec": "Macsuite spec",
-            "keysize": 0,
-            "key": []
+            "spec": "HmacSHA512",
+            "keyspec": "HmacSHA512",
+            "key": "e2bb24626197fa4f53e6e818757caafe2bf4d67b5d1224b5e274f376523aaadf05c4cd9717a30722ebdd8eb42d153fa21c737706453444cdc5e75a7a39b37e4f"
+         }
+      }
+   },
+   "monsters1": {
+      "movie": "monsters",
+      "ppvprice": "5",
+      "ciphersuite": {
+         "confidentiality": {
+            "spec": "AES/CTR/NoPadding",
+            "keyspec": "AES",
+            "key": "383bec8ab7674e88bedfc69f4ad4c42747eec3dfbe1d49fd28767f0002e56b26",
+            "iv": "b15e9f3f47ccbcf5cb029523898a9fde"
+         },
+         "integrity": {
+            "spec": "DESCMAC",
+            "keyspec": "DESCMAC",
+            "key": "8623d5457502d538"
+         }
+      }
+   },
+   "monsters2": {
+      "movie": "monsters",
+      "ppvprice": "5",
+      "ciphersuite": {
+         "confidentiality": {
+            "spec": "Blowfish",
+            "keyspec": "Blowfish",
+            "key": "91c089bb7bf7bb84b140d5b2684bbaf21454016e40a91c164fad03ec690f32ce",
+            "iv": "9cb0acbea4ad16662c79ef8ff1e2341a"
+         },
+         "integrity": {
+            "spec": "DESEDECMAC",
+            "keyspec": "DESEDECMAC",
+            "key": "70640b049b946286"
+         }
+      }
+   },
+   "monsters3": {
+      "movie": "monsters",
+      "ppvprice": "5",
+      "ciphersuite": {
+         "confidentiality": {
+            "spec": "TripleDES/CFB/PKCS5Padding",
+            "keyspec": "TripleDES",
+            "key": "16042c7a3825d0f1b67a32a2d5d0859d3116804375d96ed9",
+            "iv": "e62ae7a08398416c"
+         },
+         "integrity": {
+            "spec": "HmacSHA224",
+            "keyspec": "HmacSHA224",
+            "key": "efa97f5b6cc957cddd7fe1565a1f463fdfc09f8fe8f8895d964570f3cb5e074c9ad2025c7a9f76c3a8db093137f9d6538ace4b8582c9fed6b83b4521bcb4cf09"
          }
       }
    }

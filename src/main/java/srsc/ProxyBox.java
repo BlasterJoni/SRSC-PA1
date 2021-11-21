@@ -26,9 +26,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.MulticastSocket;
 import java.net.InetSocketAddress;
-import java.net.InetAddress;
 import java.net.SocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -38,7 +36,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import srsc.sadkdp.SADKDP;
-import srsc.sadkdp.jsonEntities.TicketCredentials;
 import srsc.sadkdp.jsonEntities.TicketCredentialsReturn;
 import srsc.srtsp.SRTSPDatagramSocket;
 import srsc.srtsp.SRTSP;
@@ -59,17 +56,17 @@ class ProxyBox {
 			System.out.println("Erro, usar: ProxyBox <movieId> <username> <password> <keystore> <keystore-password> <ProxyInfo>");
 			System.exit(-1);
 		}
+        TicketCredentialsReturn tc = new SADKDP(args[3], args[4]).getTicket("localhost", "42069", args[1], args[2], new String(Files.readAllBytes(Paths.get(args[5]))), args[0]);
         
         SocketAddress inSocketAddress = parseSocketAddress(remote);
         Set<SocketAddress> outSocketAddressSet = Arrays.stream(destinations.split(",")).map(s -> parseSocketAddress(s))
                 .collect(Collectors.toSet());
 
-        DatagramSocket inSocket = new SRTSPDatagramSocket(inSocketAddress);
+        DatagramSocket inSocket = new SRTSPDatagramSocket(inSocketAddress, tc.getCiphersuiteConf());
         DatagramSocket outSocket = new DatagramSocket();
         byte[] buffer = new byte[4 * 1024];
 
-        TicketCredentialsReturn ticketCredentials = new SADKDP(args[3], args[4]).getTicket("localhost", "42069", args[1], args[2], new String(Files.readAllBytes(Paths.get(args[5]))), args[0]);
-        byte[] frame = new SRTSP(args[3], args[4]).requestMovie(ticketCredentials);
+        byte[] frame = new SRTSP(args[3], args[4]).requestMovie(tc);
         System.out.print("*");
         for (SocketAddress outSocketAddress : outSocketAddressSet) {
             outSocket.send(new DatagramPacket(buffer, frame.length, outSocketAddress));

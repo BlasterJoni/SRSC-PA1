@@ -470,66 +470,66 @@ public class SADKDP {
 
         ServerSocket serverSocket = new ServerSocket(port);
 
-        while (true) {
-            Socket clientSocket = serverSocket.accept();
-            BufferedWriter out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
-            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            String message;
-            int myLastNounce;
-            int counter = 1;
+        Socket clientSocket = serverSocket.accept();
+        BufferedWriter out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+        BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        String message;
+        int myLastNounce;
+        int counter = 1;
 
-            message = in.readLine();
-            Hello hello = decodeMessage1(message);
-            if (!users.containsKey(hello.getUserId())
-                    || !users.get(hello.getUserId()).getProxyId().equals(hello.getProxyBoxId())) {
-                throw new Exception();
-            }
-
-            myLastNounce = newNounce();
-            byte[] Salt = new byte[8];
-            new SecureRandom().nextBytes(Salt);
-            String authenticationrequest = encodeMessage2(myLastNounce, Salt, counter);
-            out.write(authenticationrequest);
-            out.newLine();
-            out.flush();
-
-            message = in.readLine();
-            String password = users.get(hello.getUserId()).getPassword();
-            Authentication authentication = decodeMessage3(password, Salt, counter++,
-                    message, myLastNounce);
-            if (authentication.getN1_() != myLastNounce + 1 || !movies.containsKey(authentication.getMovieId()))
-                throw new Exception();
-            CipherMovie movie = movies.get(authentication.getMovieId());
-
-            myLastNounce = newNounce();
-            String paymentrequest = encodeMessage4(password, movie.getPpvprice(), authentication.getN2() + 1, myLastNounce);
-            out.write(paymentrequest);
-            out.newLine();
-            out.flush();
-
-            message = in.readLine();
-            Payment payment = decodeMessage5(password, message, myLastNounce);
-            if (payment.getN3_() != myLastNounce + 1) // TODO verificar se a coin é legit
-                throw new Exception();
-
-            KeyGenerator kg = KeyGenerator.getInstance("AES");
-            kg.init(256);
-            SecretKey sessionKey = kg.generateKey();
-            SecretKey macKey = kg.generateKey();
-
-            byte[] iv = new byte[16];
-            new SecureRandom().nextBytes(iv);
-
-            String ticketcredentials = encodeMessage6(password, "localhost", "42169", movie.getMovie(), movie.getCiphersuite(),
-                    sessionKey.getEncoded(), iv, macKey.getEncoded(), payment.getN4() + 1, 0);
-            out.write(ticketcredentials);
-            out.newLine();
-            out.flush();
-
-            out.close();
-            in.close();
-            clientSocket.close();
+        message = in.readLine();
+        Hello hello = decodeMessage1(message);
+        if (!users.containsKey(hello.getUserId())
+                || !users.get(hello.getUserId()).getProxyId().equals(hello.getProxyBoxId())) {
+            throw new Exception();
         }
+
+        myLastNounce = newNounce();
+        byte[] Salt = new byte[8];
+        new SecureRandom().nextBytes(Salt);
+        String authenticationrequest = encodeMessage2(myLastNounce, Salt, counter);
+        out.write(authenticationrequest);
+        out.newLine();
+        out.flush();
+
+        message = in.readLine();
+        String password = users.get(hello.getUserId()).getPassword();
+        Authentication authentication = decodeMessage3(password, Salt, counter++,
+                message, myLastNounce);
+        if (authentication.getN1_() != myLastNounce + 1 || !movies.containsKey(authentication.getMovieId()))
+            throw new Exception();
+        CipherMovie movie = movies.get(authentication.getMovieId());
+
+        myLastNounce = newNounce();
+        String paymentrequest = encodeMessage4(password, movie.getPpvprice(), authentication.getN2() + 1, myLastNounce);
+        out.write(paymentrequest);
+        out.newLine();
+        out.flush();
+
+        message = in.readLine();
+        Payment payment = decodeMessage5(password, message, myLastNounce);
+        if (payment.getN3_() != myLastNounce + 1) // TODO verificar se a coin é legit
+            throw new Exception();
+
+        KeyGenerator kg = KeyGenerator.getInstance("AES");
+        kg.init(256);
+        SecretKey sessionKey = kg.generateKey();
+        SecretKey macKey = kg.generateKey();
+
+        byte[] iv = new byte[16];
+        new SecureRandom().nextBytes(iv);
+
+        String ticketcredentials = encodeMessage6(password, "localhost", "42169", movie.getMovie(), movie.getCiphersuite(),
+                sessionKey.getEncoded(), iv, macKey.getEncoded(), payment.getN4() + 1, 0);
+        out.write(ticketcredentials);
+        out.newLine();
+        out.flush();
+
+        out.close();
+        in.close();
+        clientSocket.close();
+        serverSocket.close();
+        
     }
 
     public TicketCredentialsReturn getTicket(String ip, String port, String username, String password, String proxyId,

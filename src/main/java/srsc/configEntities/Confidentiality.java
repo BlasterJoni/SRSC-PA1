@@ -1,18 +1,20 @@
 package srsc.configEntities;
 
+import srsc.Utils;
+
 public class Confidentiality {
     private String spec;
-    private int keysize;
-    private byte[] key;
-    private byte[] iv;
+    private String key;
+    private String keyspec;
+    private String iv;
 
     public Confidentiality() {
     }
 
-    public Confidentiality(String spec, int keysize, byte[] key, byte[] iv) {
+    public Confidentiality(String spec, String key, String keyspec, String iv) {
         this.spec = spec;
-        this.keysize = keysize;
         this.key = key;
+        this.keyspec = keyspec;
         this.iv = iv;
     }
     
@@ -24,28 +26,44 @@ public class Confidentiality {
         this.spec = spec;
     }
 
-    public int getKeysize() {
-        return this.keysize;
-    }
-
-    public void setKeysize(int keysize) {
-        this.keysize = keysize;
-    }
-
-    public byte[] getKey() {
+    public String getKey() {
         return this.key;
     }
 
-    public void setKey(byte[] key) {
+    public void setKey(String key) {
         this.key = key;
     }
 
-    public byte[] getIv() {
+    public byte[] getKeyByte() {
+        return Utils.hexStringToByteArray(this.key);
+    }
+
+    public void setKeyByte(byte[] key) {
+        this.key = Utils.toHex(key);
+    }
+
+    public String getKeySpec() {
+        return this.keyspec;
+    }
+
+    public void setKeySpec(String keyspec) {
+        this.key = keyspec;
+    }
+
+    public String getIv() {
         return this.iv;
     }
 
-    public void setIv(byte[] iv) {
+    public void setIv(String iv) {
         this.iv = iv;
+    }
+
+    public byte[] getIvByte() {
+        return Utils.hexStringToByteArray(this.iv);
+    }
+
+    public void setIvByte(byte[] iv) {
+        this.iv = Utils.toHex(iv);
     }
 
 }

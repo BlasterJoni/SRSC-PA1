@@ -1,18 +1,20 @@
 package srsc.configEntities;
 
+import srsc.Utils;
+
 public class Integrity {
 
    private String spec;
-   private int keysize;
-   private byte[] key;
+   private String key;
+   private String keyspec;
 
     public Integrity(){
     }
 
-   public Integrity(String spec, int keysize, byte[] key){
+   public Integrity(String spec, String key, String keyspec){
        this.spec = spec;
-       this.keysize = keysize;
        this.key = key;
+       this.keyspec = keyspec;
    }
 
     public String getSpec() {
@@ -23,20 +25,28 @@ public class Integrity {
         this.spec = spec;
     }
 
-    public int getKeysize() {
-        return this.keysize;
-    }
-
-    public void setKeysize(int keysize) {
-        this.keysize = keysize;
-    }
-
-    public byte[] getKey() {
+    public String getKey() {
         return this.key;
     }
 
-    public void setKey(byte[] key) {
+    public void setKey(String key) {
         this.key = key;
+    }
+
+    public String getKeySpec() {
+        return this.keyspec;
+    }
+
+    public void setKeySpec(String keyspec) {
+        this.key = keyspec;
+    }
+
+    public byte[] getKeyByte() {
+        return Utils.hexStringToByteArray(this.key);
+    }
+
+    public void setKeyByte(byte[] key) {
+        this.key = Utils.toHex(key);
     }
 
 }

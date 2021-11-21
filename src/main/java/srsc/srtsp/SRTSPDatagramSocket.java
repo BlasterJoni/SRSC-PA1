@@ -1,15 +1,12 @@
 package srsc.srtsp;
 
-import srsc.Utils;
-import srsc.UtilsBase;
+import srsc.configEntities.Ciphersuite;
 
 import java.io.IOException;
 import java.net.*;
 import java.nio.ByteBuffer;
-import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.MessageDigest;
-import java.security.SecureRandom;
 
 import javax.crypto.Cipher;
 import javax.crypto.Mac;
@@ -25,26 +22,26 @@ public class SRTSPDatagramSocket extends DatagramSocket {
     Cipher cipher;
     Mac hMac;
     Key hMacKey;
-    IvParameterSpec ivSpec;
+    IvParameterSpec ivSpec = null;
 
-    public SRTSPDatagramSocket() throws Exception {
+    public SRTSPDatagramSocket(Ciphersuite c) throws Exception {
         super();
-        key = new SecretKeySpec(keyBytes, "RC4");
-        cipher = Cipher.getInstance("RC4");
-        hMac = Mac.getInstance("HmacSHA512");
-        hMacKey = new SecretKeySpec(key.getEncoded(), "HmacSHA512");
-
-        // ivSpec = null;
+        key = new SecretKeySpec(c.getConfidentiality().getKeyByte(), c.getConfidentiality().getKeySpec());
+        if(c.getConfidentiality().getIv()!=null)
+            ivSpec = new IvParameterSpec(c.getConfidentiality().getIvByte());
+        cipher = Cipher.getInstance(c.getConfidentiality().getSpec());
+        hMac = Mac.getInstance(c.getIntegrity().getSpec());
+        hMacKey = new SecretKeySpec(c.getIntegrity().getKeyByte(), c.getIntegrity().getKeySpec());
     }
 
-    public SRTSPDatagramSocket(SocketAddress inSocketAddress) throws Exception {
+    public SRTSPDatagramSocket(SocketAddress inSocketAddress, Ciphersuite c) throws Exception {
         super(inSocketAddress);
-        key = new SecretKeySpec(keyBytes, "RC4");
-        cipher = Cipher.getInstance("RC4");
-        hMac = Mac.getInstance("HmacSHA512");
-        hMacKey = new SecretKeySpec(key.getEncoded(), "HmacSHA512");
-
-        // ivSpec = null;
+        key = new SecretKeySpec(c.getConfidentiality().getKeyByte(), c.getConfidentiality().getKeySpec());
+        if(c.getConfidentiality().getIv()!=null)
+            ivSpec = new IvParameterSpec(c.getConfidentiality().getIvByte());
+        cipher = Cipher.getInstance(c.getConfidentiality().getSpec());
+        hMac = Mac.getInstance(c.getIntegrity().getSpec());
+        hMacKey = new SecretKeySpec(c.getIntegrity().getKeyByte(), c.getIntegrity().getKeySpec());
     }
 
     @Override
@@ -61,7 +58,10 @@ public class SRTSPDatagramSocket extends DatagramSocket {
         int macSize = hMac.getMacLength();
 
         try {
-            cipher.init(Cipher.ENCRYPT_MODE, key);
+            if(ivSpec==null)
+                cipher.init(Cipher.ENCRYPT_MODE, key);
+            else
+                cipher.init(Cipher.ENCRYPT_MODE, key, ivSpec);
 
             byte[] cipherText = new byte[cipher.getOutputSize(payloadSize + macSize)];
 
@@ -100,7 +100,10 @@ public class SRTSPDatagramSocket extends DatagramSocket {
         packetData.get(cipherText);
 
         try {
-            cipher.init(Cipher.DECRYPT_MODE, key);
+            if(ivSpec==null)
+                cipher.init(Cipher.DECRYPT_MODE, key);
+            else
+                cipher.init(Cipher.DECRYPT_MODE, key, ivSpec);
 
             byte[] plainText = cipher.doFinal(cipherText, 0, payloadAndHMacSize);
 

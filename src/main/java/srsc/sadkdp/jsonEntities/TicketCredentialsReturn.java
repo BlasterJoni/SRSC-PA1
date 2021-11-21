@@ -1,7 +1,5 @@
 package srsc.sadkdp.jsonEntities;
 
-import javax.crypto.Cipher;
-
 import srsc.configEntities.Ciphersuite;
 
 public class TicketCredentialsReturn {

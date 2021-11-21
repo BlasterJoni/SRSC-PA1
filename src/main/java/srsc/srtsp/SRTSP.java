@@ -384,6 +384,7 @@ public class SRTSP {
         out.close();
         in.close();
         clientSocket.close();
+        serverSocket.close();
     }
 
     public byte[] requestMovie(TicketCredentialsReturn ticketCredentials) throws Exception {

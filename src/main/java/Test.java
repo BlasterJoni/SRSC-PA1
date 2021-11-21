@@ -3,19 +3,9 @@
  * Materiais/Labs para SRSC 17/18, Sem-2
  * Henrique Domingos, 12/3/17
  **/
-
-import java.io.File;
-import java.nio.ByteBuffer;
-import java.security.KeyStore;
-import java.security.Provider;
 import java.security.SecureRandom;
-import java.security.Security;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
 
-import org.bouncycastle.jcajce.provider.symmetric.util.PBE.Util;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import javax.crypto.KeyGenerator;
 
 import srsc.Utils;
 
@@ -39,6 +29,7 @@ public class Test {
         // System.out.print((int) a2[2]);
 
 
+        /*
         // Generate proxy box id
 
         KeyStore ks = KeyStore.getInstance(new File("./src/main/resources/proxybox.keystore"), "password".toCharArray());
@@ -47,5 +38,20 @@ public class Test {
         new SecureRandom().nextBytes(ran);
 
         System.out.print(Utils.toHex(ByteBuffer.allocate(pub.length+ran.length).put(pub).put(ran).array()));
+        */
+
+        
+        KeyGenerator kg = KeyGenerator.getInstance("DES");
+        //kg.init(256, new SecureRandom());
+        System.out.println("key aes");
+        System.out.println(Utils.toHex(kg.generateKey().getEncoded()));
+        byte[] iv = new byte[8];
+        new SecureRandom().nextBytes(iv);
+        System.out.println("iv array");
+        System.out.println(Utils.toHex(iv));
+
+        System.out.println("hmac");
+        System.out.println(Utils.toHex(KeyGenerator.getInstance("HmacSHA512").generateKey().getEncoded()));
+        
     }
 }

@@ -27,7 +27,7 @@ class StreamingServer {
 		DataInputStream g = new DataInputStream(new FileInputStream("./src/main/resources/movies/" + tc.getMovieId() +".dat"));
 		byte[] buff = new byte[4096];
 
-		DatagramSocket s = new SRTSPDatagramSocket();
+		DatagramSocket s = new SRTSPDatagramSocket(tc.getCiphersuiteConf());
 		InetSocketAddress addr = srtsp.getClientAddress();
 		DatagramPacket p = new DatagramPacket(buff, buff.length, addr);
 		long t0 = System.nanoTime(); // tempo de referencia para este processo
