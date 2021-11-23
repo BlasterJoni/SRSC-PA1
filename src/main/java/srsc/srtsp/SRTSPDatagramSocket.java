@@ -16,8 +16,10 @@ import javax.crypto.spec.SecretKeySpec;
 
 public class SRTSPDatagramSocket extends DatagramSocket {
 
-    byte[] keyBytes = new byte[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d,
-            0x0e, 0x0f };
+    private static final int HEADERSIZE = Byte.SIZE / 8 + Byte.SIZE / 8 + Integer.SIZE / 8;
+
+    private static final byte VERSION = 0b00000011;
+    private static final byte MESSAGE = 0b00000000;
 
     SecretKeySpec key;
     Cipher cipher;
@@ -50,11 +52,6 @@ public class SRTSPDatagramSocket extends DatagramSocket {
 
         byte[] payload = p.getData();
 
-        byte version = 0b00010000;
-        byte messageType = 0b00000000;
-        byte versionPlusMsgType = (byte) (version | messageType);
-
-        int headerSize = Byte.SIZE / 8 + Integer.SIZE / 8;
         int payloadSize = p.getLength();
         int macSize = hMac.getMacLength();
 
@@ -73,7 +70,7 @@ public class SRTSPDatagramSocket extends DatagramSocket {
 
             ctLength += cipher.doFinal(hMac.doFinal(), 0, hMac.getMacLength(), cipherText, ctLength);
 
-            byte[] packetData = ByteBuffer.allocate(headerSize+ctLength).put(versionPlusMsgType).putInt(payloadSize).put(cipherText).array();           
+            byte[] packetData = ByteBuffer.allocate(HEADERSIZE+ctLength).put(VERSION).put(MESSAGE).putInt(payloadSize).put(cipherText).array();           
             super.send(new DatagramPacket(packetData, packetData.length, p.getSocketAddress()));
 
         }  catch (Exception e) {
@@ -89,12 +86,10 @@ public class SRTSPDatagramSocket extends DatagramSocket {
         byte[] packetDataArray = p.getData();
         ByteBuffer packetData = ByteBuffer.wrap(packetDataArray);
 
-        int headerSize = Byte.SIZE / 8 + Integer.SIZE / 8;
-        byte versionPlusMsgType = packetData.get();
-        byte version = (byte) (0b11110000 & versionPlusMsgType);
-        byte messageType = (byte) (0b00001111 &  versionPlusMsgType);
+        byte version = packetData.get();
+        byte messageType = packetData.get();
 
-        int payloadAndHMacSize = p.getLength()-headerSize;
+        int payloadAndHMacSize = p.getLength()-HEADERSIZE;
         int payloadSize = packetData.getInt();
 
         byte[] cipherText = new byte[payloadAndHMacSize];

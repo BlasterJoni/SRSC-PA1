@@ -90,31 +90,26 @@ public class SRTSP {
 
         addSeenNounce(ackVerification.getN2_());
 
-        ackPaPrimeiraFrame = ackVerification.getN3()+1;
+        byte[] initMarkFrame =  Utils.toByteArray("initmark-frame");
 
-        return tc;
-    }
-
-    public InetSocketAddress getClientAddress(){
-        return new InetSocketAddress(clientSocket.getInetAddress(), 9999);
-    }
-
-    public void sendFirstFrame(byte[] frame, int size, TicketCredentials tc) throws Exception{
-        byte[] frameCropped =  new byte[size];
-        System.arraycopy(frame, 0, frameCropped, 0, size);
-
-        String SyncInitialFrame = encodeMessage4(tc.getSessionKey(), tc.getSessionIV(), tc.getMacKey(), frameCropped, ackPaPrimeiraFrame);
+        String SyncInitialFrame = encodeMessage4(tc.getSessionKey(), tc.getSessionIV(), tc.getMacKey(), initMarkFrame, ackVerification.getN3()+1);
         out.write(SyncInitialFrame);
         out.newLine();
         out.flush();   
 
+        return tc;
+    }
+
+    public InetSocketAddress getClientAddress() throws Exception{
         out.close();
         in.close();
         clientSocket.close();
         serverSocket.close();
+
+        return new InetSocketAddress(clientSocket.getInetAddress(), 9999);
     }
 
-    public byte[] requestMovie(TicketCredentialsReturn ticketCredentials) throws Exception {
+    public void requestMovie(TicketCredentialsReturn ticketCredentials) throws Exception {
         clientSocket = new Socket(ticketCredentials.getIp(), Integer.parseInt(ticketCredentials.getPort()));
         out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
         in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
@@ -148,8 +143,6 @@ public class SRTSP {
         addSeenNounce(syncInitialFrame.getN3_());
 
         clientSocket.close();
-
-        return syncInitialFrame.getframe();
     }
 
         private String encodeMessage1(byte[] ticket, byte[] signature, int n1) {

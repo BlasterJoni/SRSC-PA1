@@ -47,12 +47,13 @@ class StreamingServer {
 
 				// send packet (with a frame payload)
 				// Frames sent in clear (no encryption)
-				if (count == 1)
-					srtsp.sendFirstFrame(buff, size, tc);
-				else
-					s.send(p);
+				s.send(p);
 				System.out.print(".");
 			}
+			byte[] endOfTransmission = {0x04}; // eot ascii character
+			p.setData(endOfTransmission);
+			p.setSocketAddress(addr);
+			s.send(p);
 
 			System.out.println("DONE! all frames sent: " + count);
 		}

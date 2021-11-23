@@ -565,7 +565,7 @@ public class SADKDP {
 
                 String ticketcredentials = encodeMessage6(password, "localhost", "42169", movie.getMovie(),
                         movie.getCiphersuite(), sessionKey.getEncoded(), iv, macKey.getEncoded(), payment.getN4() + 1,
-                        0);
+                        newNounce());
                 out.write(ticketcredentials);
                 out.newLine();
                 out.flush();
