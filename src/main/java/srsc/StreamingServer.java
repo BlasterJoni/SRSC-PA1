@@ -23,8 +23,7 @@ class StreamingServer {
 			int size;
 			int count = 0;
 			long time;
-			DataInputStream g = new DataInputStream(
-					new FileInputStream("./src/main/resources/movies/" + tc.getMovieId() + ".dat"));
+			DataInputStream g = new DataInputStream( new FileInputStream("./src/main/resources/movies/" + tc.getMovieId() + ".dat"));
 			byte[] buff = new byte[4096];
 
 			DatagramSocket s = new SRTSPDatagramSocket(tc.getCiphersuiteConf());

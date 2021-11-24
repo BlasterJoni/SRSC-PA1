@@ -502,12 +502,12 @@ public class SADKDP {
 
     }
 
-    public void startServer(int port, String pathToUserProxiesJSON, String pathToCipherMoviesJSON) throws Exception {
+    public void startServer(String signalingAddress, String streamingAddress, String pathToUserProxiesJSON, String pathToCipherMoviesJSON) throws Exception {
 
         Map<String, UserProxy> users = getUsers(pathToUserProxiesJSON);
         Map<String, CipherMovie> movies = getMovies(pathToCipherMoviesJSON);
 
-        ServerSocket serverSocket = new ServerSocket(port);
+        ServerSocket serverSocket = new ServerSocket(Integer.parseInt(signalingAddress.split(":")[1]));
 
         while (true) {
             Socket clientSocket = serverSocket.accept();
@@ -563,7 +563,7 @@ public class SADKDP {
                 byte[] iv = new byte[16];
                 new SecureRandom().nextBytes(iv);
 
-                String ticketcredentials = encodeMessage6(password, "localhost", "42169", movie.getMovie(),
+                String ticketcredentials = encodeMessage6(password, streamingAddress.split(":")[0], streamingAddress.split(":")[1], movie.getMovie(),
                         movie.getCiphersuite(), sessionKey.getEncoded(), iv, macKey.getEncoded(), payment.getN4() + 1,
                         newNounce());
                 out.write(ticketcredentials);
@@ -584,9 +584,11 @@ public class SADKDP {
 
     }
 
-    public TicketCredentialsReturn getTicket(String ip, String port, String username, String password, String proxyId,
+    public TicketCredentialsReturn getTicket(String address, String username, String password, String proxyId,
             String movieId) throws Exception {
-        Socket clientSocket = new Socket(ip, Integer.parseInt(port));
+
+        String[] addressSplit = address.split(":");
+        Socket clientSocket = new Socket(addressSplit[0], Integer.parseInt(addressSplit[1]));
         BufferedWriter out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
         BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         String message;

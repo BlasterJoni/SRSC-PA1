@@ -77,6 +77,7 @@ public class Test {
 
         // Gerar moedas
 
+        /*
         Security.addProvider(new BouncyCastleProvider());
 
         Coin c = new Coin("PPVMovieCoin", "BancoBank", 10, java.time.LocalDate.now().plusMonths(12).toString());
@@ -110,6 +111,8 @@ public class Test {
         Gson gson = new Gson();
         String json = gson.toJson(cwi);
         System.out.println(json);
+
+        */
 
         // CoinWithIntegrity fj = gson.fromJson(json, CoinWithIntegrity.class);
 
