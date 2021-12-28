@@ -49,21 +49,23 @@ class ProxyBox {
         }
         Properties properties = new Properties();
         properties.load(inputStream);
-        String remote = properties.getProperty("remote");
+        String streamingUDP = properties.getProperty("streamingUDP");
+        String proxyUDP = properties.getProperty("proxyUDP");
         String destinations = properties.getProperty("localdelivery");
 
-        if (args.length != 6) {
-			System.out.println("Erro, usar: ProxyBox <movieId> <username> <password> <keystore> <keystore-password> <ProxyInfo>");
+        if (args.length != 10) {
+			System.out.println("Erro, usar: ProxyBox <movieId> <username> <password> <ProxyInfo> <keystore> <keystore-password> <truststore> <truststore-password> <tls-conf> <dtls-conf>");
 			System.exit(-1);
 		}
-        TicketCredentialsReturn tc = new SADKDP(args[3], args[4]).getTicket(properties.getProperty("signaling"), args[1], args[2], new String(Files.readAllBytes(Paths.get(args[5]))), args[0]);
-        new SRTSP(args[3], args[4]).requestMovie(tc);
+        TicketCredentialsReturn tc = new SADKDP(args[4], args[5]).getTicket(properties.getProperty("signaling"), args[1], args[2], new String(Files.readAllBytes(Paths.get(args[3]))), args[0]);
+        new SRTSP(args[4], args[5]).requestMovie(tc);
         
-        SocketAddress inSocketAddress = parseSocketAddress(remote);
+        SocketAddress streamingSocketAddress = parseSocketAddress(streamingUDP);
+        SocketAddress inSocketAddress = parseSocketAddress(proxyUDP);
         Set<SocketAddress> outSocketAddressSet = Arrays.stream(destinations.split(",")).map(s -> parseSocketAddress(s))
                 .collect(Collectors.toSet());
 
-        DatagramSocket inSocket = new SRTSPDatagramSocket(inSocketAddress, tc.getCiphersuiteConf());
+        DatagramSocket inSocket = new SRTSPDatagramSocket(tc.getCiphersuiteConf(), false, args[4], args[5], args[6], args[7], args[9], streamingSocketAddress, inSocketAddress);
         DatagramSocket outSocket = new DatagramSocket();
         byte[] buffer = new byte[4 * 1024];
 

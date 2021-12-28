@@ -14,7 +14,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-public class SRTSPDatagramSocket extends DatagramSocket {
+public class SRTSPDatagramSocket extends DTLSSocket {
 
     private static final int HEADERSIZE = Byte.SIZE / 8 + Byte.SIZE / 8 + Integer.SIZE / 8;
 
@@ -27,18 +27,9 @@ public class SRTSPDatagramSocket extends DatagramSocket {
     Key hMacKey;
     IvParameterSpec ivSpec = null;
 
-    public SRTSPDatagramSocket(Ciphersuite c) throws Exception {
-        super();
-        key = new SecretKeySpec(c.getConfidentiality().getKey(), c.getConfidentiality().getKeySpec());
-        if(c.getConfidentiality().getIv()!=null)
-            ivSpec = new IvParameterSpec(c.getConfidentiality().getIv());
-        cipher = Cipher.getInstance(c.getConfidentiality().getSpec());
-        hMac = Mac.getInstance(c.getIntegrity().getSpec());
-        hMacKey = new SecretKeySpec(c.getIntegrity().getKey(), c.getIntegrity().getKeySpec());
-    }
-
-    public SRTSPDatagramSocket(SocketAddress inSocketAddress, Ciphersuite c) throws Exception {
-        super(inSocketAddress);
+    public SRTSPDatagramSocket(Ciphersuite c, boolean isServer, String keystore, String keystorePassword, String truststore, String truststorePassword, String dtlsConf, SocketAddress destAddress, SocketAddress ourAddress) throws Exception {
+        super(isServer, keystore, keystorePassword, truststore, truststorePassword, dtlsConf, ourAddress);
+        super.beginHandshake(destAddress);
         key = new SecretKeySpec(c.getConfidentiality().getKey(), c.getConfidentiality().getKeySpec());
         if(c.getConfidentiality().getIv()!=null)
             ivSpec = new IvParameterSpec(c.getConfidentiality().getIv());

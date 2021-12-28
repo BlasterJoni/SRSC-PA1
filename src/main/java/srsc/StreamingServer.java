@@ -2,6 +2,7 @@ package srsc;
 
 import java.io.*;
 import java.net.*;
+import java.util.Properties;
 
 import srsc.srtsp.jsonEntities.TicketCredentials;
 import srsc.srtsp.SRTSP;
@@ -10,9 +11,17 @@ import srsc.srtsp.SRTSPDatagramSocket;
 class StreamingServer {
 
 	static public void main(String[] args) throws Exception {
-		if (args.length != 2) {
-			System.out.println("Erro, usar: StreamingServer <keystore> <keystore-password>");
-			System.out.println("        or: StreamingServer <keystore> <keystore-password>");
+		InputStream inputStream = new FileInputStream("./src/main/resources/config.properties");
+        if (inputStream == null) {
+            System.err.println("Configuration file not found!");
+            System.exit(1);
+        }
+        Properties properties = new Properties();
+        properties.load(inputStream);
+		String streamingUDP = properties.getProperty("streamingUDP");
+
+		if (args.length != 6) {
+			System.out.println("Erro, usar: StreamingServer <keystore> <keystore-password> <truststore> <truststore-password> <tls-conf> <dtls-conf>");
 			System.exit(-1);
 		}
 
@@ -26,8 +35,9 @@ class StreamingServer {
 			DataInputStream g = new DataInputStream( new FileInputStream("./src/main/resources/movies/" + tc.getMovieId() + ".dat"));
 			byte[] buff = new byte[4096];
 
-			DatagramSocket s = new SRTSPDatagramSocket(tc.getCiphersuiteConf());
 			InetSocketAddress addr = srtsp.getClientAddress();
+			SocketAddress streamingSocketAddress = parseSocketAddress(streamingUDP);
+			DatagramSocket s = new SRTSPDatagramSocket(tc.getCiphersuiteConf(), true, args[0], args[1], args[2], args[3], args[5], addr, streamingSocketAddress);
 			DatagramPacket p = new DatagramPacket(buff, buff.length, addr);
 			long t0 = System.nanoTime(); // tempo de referencia para este processo
 			long q0 = 0;
@@ -58,4 +68,10 @@ class StreamingServer {
 		}
 	}
 
+	private static InetSocketAddress parseSocketAddress(String socketAddress) {
+        String[] split = socketAddress.split(":");
+        String host = split[0];
+        int port = Integer.parseInt(split[1]);
+        return new InetSocketAddress(host, port);
+    }
 }

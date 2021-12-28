@@ -19,13 +19,13 @@ public class SignalingServer {
         Properties properties = new Properties();
         properties.load(inputStream);
 
-        if (args.length != 4) {
-			System.out.println("Erro, usar: SignalingServer <keystore> <keystore-password> <userproxies> <ciphermovies>");
+        if (args.length != 7) {
+			System.out.println("Erro, usar: SignalingServer <userproxies> <ciphermovies> <keystore> <keystore-password> <truststore> <truststore-password> <tls-conf>");
 			System.exit(-1);
 		}
 
-        SADKDP server = new SADKDP(args[0], args[1]); //keystore, keystorepassword
-        server.startServer(properties.getProperty("signaling"), properties.getProperty("streaming"), args[2], args[3]); //port, userproxies, ciphermovies
+        SADKDP server = new SADKDP(args[2], args[3]); //keystore, keystorepassword
+        server.startServer(properties.getProperty("signaling"), properties.getProperty("streaming"), args[0], args[1]); //port, userproxies, ciphermovies
     }
     
 }

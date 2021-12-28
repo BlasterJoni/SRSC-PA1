@@ -11,6 +11,7 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
 
 import javax.crypto.KeyGenerator;
+import javax.net.ssl.SSLContext;
 
 import com.google.gson.Gson;
 
@@ -118,5 +119,11 @@ public class Test {
 
         // String json2 = gson.toJson(fj); // System.out.println(json2);
 
+
+        // String[] s = SSLContext.getInstance("DTLS").createSSLEngine().getSupportedProtocols();
+
+        // for(String a : s){
+        //     System.out.println(a);
+        // }
     }
 }
