@@ -25,7 +25,7 @@ class StreamingServer {
 			System.exit(-1);
 		}
 
-		SRTSP srtsp = new SRTSP(args[0], args[1]);
+		SRTSP srtsp = new SRTSP(args[0], args[1], args[2], args[3], args[4]);
 		while (true) {
 			TicketCredentials tc = srtsp.startReceiveTicket(42169);
 

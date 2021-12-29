@@ -7,7 +7,7 @@ echo "------------------------------------------------------------------------"
 # 1) To begin, we first generate a key pair which will be used as the CA,
 #    the private key will be used to sign the certificate it issues.
 
-keytool -genkeypair -alias root -keystore root.jks -dname "CN=Root CA" -storepass password -keypass password -ext bc=ca:true
+keytool -genkeypair -keyalg RSA -alias root -keystore root.jks -dname "CN=Root CA" -storepass password -keypass password -ext bc=ca:true
 
 keytool -export -alias root -keystore root.jks -storepass password -file root.crt
 
@@ -36,7 +36,7 @@ echo "------------------------------------------------------------------------"
 #    by the CA above (itself).
 #    So this an selfigned / selfissued  certificate
 
-keytool -genkeypair -alias ca -keystore ca.jks -dname "CN=Intermediate CA" -storepass password -keypass password -ext bc=ca:true
+keytool -genkeypair -keyalg RSA -alias ca -keystore ca.jks -dname "CN=Intermediate CA" -storepass password -keypass password -ext bc=ca:true
 
 #  3) Next, a certificate request for the "CN=ca" certificate needs to be
 #  created.
@@ -66,7 +66,7 @@ echo "------------------------------------------------------------------------"
 #    So this an selfigned / selfissued  certificate
 
 
-keytool -genkeypair -alias tls -keystore proxybox.jks -dname "CN=Proxy Box" -storepass password -keypass password
+keytool -genkeypair -keyalg RSA -alias tls -keystore proxybox.jks -dname "CN=Proxy Box" -storepass password -keypass password
 
 #  3) Next, a certificate request for the "CN=Proxy Box" certificate needs to be
 #  created.
@@ -96,7 +96,7 @@ echo "------------------------------------------------------------------------"
 #    So this an selfigned / selfissued  certificate
 
 
-keytool -genkeypair -alias tls -keystore signalingserver.jks -dname "CN=Signaling Server" -storepass password -keypass password
+keytool -genkeypair -keyalg RSA -alias tls -keystore signalingserver.jks -dname "CN=Signaling Server" -storepass password -keypass password
 
 #  3) Next, a certificate request for the "CN=Signaling Server" certificate needs to be
 #  created.
@@ -126,7 +126,7 @@ echo "------------------------------------------------------------------------"
 #    So this an selfigned / selfissued  certificate
 
 
-keytool -genkeypair -alias tls -keystore streamingserver.jks -dname "CN=Streaming Server" -storepass password -keypass password
+keytool -genkeypair -keyalg RSA -alias tls -keystore streamingserver.jks -dname "CN=Streaming Server" -storepass password -keypass password
 
 #  3) Next, a certificate request for the "CN=Streaming Server" certificate needs to be
 #  created.

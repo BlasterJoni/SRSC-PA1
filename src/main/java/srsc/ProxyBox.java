@@ -57,8 +57,8 @@ class ProxyBox {
 			System.out.println("Erro, usar: ProxyBox <movieId> <username> <password> <ProxyInfo> <keystore> <keystore-password> <truststore> <truststore-password> <tls-conf> <dtls-conf>");
 			System.exit(-1);
 		}
-        TicketCredentialsReturn tc = new SADKDP(args[4], args[5]).getTicket(properties.getProperty("signaling"), args[1], args[2], new String(Files.readAllBytes(Paths.get(args[3]))), args[0]);
-        new SRTSP(args[4], args[5]).requestMovie(tc);
+        TicketCredentialsReturn tc = new SADKDP(args[4], args[5], args[6], args[7], args[8]).getTicket(properties.getProperty("signaling"), args[1], args[2], new String(Files.readAllBytes(Paths.get(args[3]))), args[0]);
+        new SRTSP(args[4], args[5], args[6], args[7], args[8]).requestMovie(tc);
         
         SocketAddress streamingSocketAddress = parseSocketAddress(streamingUDP);
         SocketAddress inSocketAddress = parseSocketAddress(proxyUDP);

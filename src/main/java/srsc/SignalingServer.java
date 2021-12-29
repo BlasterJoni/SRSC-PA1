@@ -24,8 +24,8 @@ public class SignalingServer {
 			System.exit(-1);
 		}
 
-        SADKDP server = new SADKDP(args[2], args[3]); //keystore, keystorepassword
-        server.startServer(properties.getProperty("signaling"), properties.getProperty("streaming"), args[0], args[1]); //port, userproxies, ciphermovies
+        SADKDP server = new SADKDP(args[2], args[3], args[4], args[5], args[6]); //keystore, keystorepassword
+        server.startServer(properties.getProperty("signaling"), properties.getProperty("streaming"), args[0], args[1]); //port, userproxies, ciphermovies, truststore, truststorepassword, tlsconf
     }
     
 }

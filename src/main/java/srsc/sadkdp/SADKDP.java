@@ -12,6 +12,15 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.lang.model.util.ElementScanner6;
+import javax.net.ServerSocketFactory;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
 import javax.crypto.*;
 import java.util.*;
 
@@ -43,15 +52,23 @@ public class SADKDP {
     private static final byte MESSAGE_91 = 0b01011011;
 
     Gson gson;
-    KeyStore ks;
-    String keyStorePassword;
+    KeyStore ks, ts;
+    String keyStorePassword, trustStorePassword;
     Set<Integer> nounces;
+    TLSconfig TLSconf;
 
-    public SADKDP(String pathToKeyStore, String keyStorePassword) throws Exception {
+    public SADKDP(String pathToKeyStore, String keyStorePassword, String pathToTrustStore, String trustStorePassword,
+            String tlsConf) throws Exception {
         Security.addProvider(new BouncyCastleProvider());
         this.gson = new Gson();
-        this.ks = KeyStore.getInstance(new File(pathToKeyStore), keyStorePassword.toCharArray());
+        String TLSconfigJSON = new String(Files.readAllBytes(Paths.get(tlsConf)));
+        this.TLSconf = gson.fromJson(TLSconfigJSON, TLSconfig.class);
+        this.ks = KeyStore.getInstance("pkcs12");
+        ks.load(new FileInputStream(pathToKeyStore), keyStorePassword.toCharArray());
+        this.ts = KeyStore.getInstance("pkcs12");
+        ts.load(new FileInputStream(pathToTrustStore), trustStorePassword.toCharArray());
         this.keyStorePassword = keyStorePassword;
+        this.trustStorePassword = trustStorePassword;
         this.nounces = new HashSet<>();
     }
 
@@ -502,15 +519,46 @@ public class SADKDP {
 
     }
 
-    public void startServer(String signalingAddress, String streamingAddress, String pathToUserProxiesJSON, String pathToCipherMoviesJSON) throws Exception {
+    public void startServer(String signalingAddress, String streamingAddress, String pathToUserProxiesJSON,
+            String pathToCipherMoviesJSON) throws Exception {
 
         Map<String, UserProxy> users = getUsers(pathToUserProxiesJSON);
         Map<String, CipherMovie> movies = getMovies(pathToCipherMoviesJSON);
 
-        ServerSocket serverSocket = new ServerSocket(Integer.parseInt(signalingAddress.split(":")[1]));
+        SSLContext sc = SSLContext.getInstance("TLS");
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance("PKIX");
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance("PKIX");
+        kmf.init(ks, keyStorePassword.toCharArray());
+        tmf.init(ts);
+        sc.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+
+        SSLServerSocketFactory ssf = sc.getServerSocketFactory();
+        SSLServerSocket serverSocket = (SSLServerSocket) ssf
+                .createServerSocket(Integer.parseInt(signalingAddress.split(":")[1]));
+
+        switch (TLSconf.getAuthentication()) {
+            case "MUTUAL":
+                serverSocket.setUseClientMode(false);
+                serverSocket.setNeedClientAuth(true);
+                break;
+            case "SSERVER":
+                serverSocket.setUseClientMode(false);
+                serverSocket.setNeedClientAuth(false);
+                break;
+            case "PROXY":
+                serverSocket.setUseClientMode(true);
+                break;
+        }
+
+        serverSocket.setEnabledProtocols(new String[] { TLSconf.getVersion() });
+        serverSocket.setEnabledCipherSuites(TLSconf.getCiphersuites());
+
+        // ServerSocket serverSocket = new
+        // ServerSocket(Integer.parseInt(signalingAddress.split(":")[1]));
 
         while (true) {
-            Socket clientSocket = serverSocket.accept();
+            SSLSocket clientSocket = (SSLSocket) serverSocket.accept();
+            // Socket clientSocket = serverSocket.accept();
             BufferedWriter out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
             BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
             String message;
@@ -563,13 +611,15 @@ public class SADKDP {
                 byte[] iv = new byte[16];
                 new SecureRandom().nextBytes(iv);
 
-                String ticketcredentials = encodeMessage6(password, streamingAddress.split(":")[0], streamingAddress.split(":")[1], movie.getMovie(),
+                String ticketcredentials = encodeMessage6(password, streamingAddress.split(":")[0],
+                        streamingAddress.split(":")[1], movie.getMovie(),
                         movie.getCiphersuite(), sessionKey.getEncoded(), iv, macKey.getEncoded(), payment.getN4() + 1,
                         newNounce());
                 out.write(ticketcredentials);
                 out.newLine();
                 out.flush();
             } catch (Exception e) {
+                e.printStackTrace();
                 String error = encodeError(password, MESSAGE_91, e.getMessage());
                 out.write(error);
                 out.newLine();
@@ -587,8 +637,36 @@ public class SADKDP {
     public TicketCredentialsReturn getTicket(String address, String username, String password, String proxyId,
             String movieId) throws Exception {
 
+        SSLContext sc = SSLContext.getInstance("TLS");
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance("PKIX");
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance("PKIX");
+        kmf.init(ks, keyStorePassword.toCharArray());
+        tmf.init(ts);
+        sc.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+
         String[] addressSplit = address.split(":");
-        Socket clientSocket = new Socket(addressSplit[0], Integer.parseInt(addressSplit[1]));
+        SSLSocketFactory factory = (SSLSocketFactory) sc.getSocketFactory();
+        SSLSocket clientSocket = (SSLSocket)factory.createSocket(addressSplit[0], Integer.parseInt(addressSplit[1]));
+
+        switch (TLSconf.getAuthentication()) {
+            case "MUTUAL": // Nothing to do
+
+            case "SSERVER":
+                // I, proxy will be the DTLS client endpoint
+                clientSocket.setUseClientMode(true);
+                break;
+            case "PROXY":
+                // I, proxy will be the DTLS server endpoint
+                // not requiring the server side authentication
+                clientSocket.setUseClientMode(false);
+                clientSocket.setNeedClientAuth(false);
+                break;
+        }
+
+        clientSocket.setEnabledProtocols(new String[] { TLSconf.getVersion() });
+        clientSocket.setEnabledCipherSuites(TLSconf.getCiphersuites());
+
+        clientSocket.startHandshake();
         BufferedWriter out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
         BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         String message;
@@ -643,12 +721,12 @@ public class SADKDP {
 
             out.close();
             in.close();
-            
+
             clientSocket.close();
-            
+
             throw e;
         }
-        
+
     }
 
     private CoinWithIntegrity loadCoin(int value) throws Exception {

@@ -3,12 +3,15 @@ package srsc.srtsp;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.MessageDigest;
@@ -22,11 +25,20 @@ import javax.crypto.Cipher;
 import javax.crypto.Mac;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
+
 import com.google.gson.Gson;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import srsc.Utils;
+import srsc.configEntities.TLSconfig;
 import srsc.sadkdp.jsonEntities.TicketCredentialsReturn;
 import srsc.srtsp.jsonEntities.*;
 
@@ -41,30 +53,65 @@ public class SRTSP {
     private static final byte MESSAGE_4 = 0b00000100;
 
     Gson gson;
-    KeyStore ks;
-    String keyStorePassword;
+    KeyStore ks, ts;
+    String keyStorePassword, trustStorePassword;
     Set<Integer> nounces;
+    TLSconfig TLSconf;
 
-    ServerSocket serverSocket;
-    Socket clientSocket;
+    SSLServerSocket serverSocket;
+    SSLSocket clientSocket;
     BufferedWriter out;
     BufferedReader in;
     int ackPaPrimeiraFrame;
 
-    public SRTSP(String pathToKeyStore, String keyStorePassword) throws Exception {
+    public SRTSP(String pathToKeyStore, String keyStorePassword, String pathToTrustStore, String trustStorePassword,
+            String tlsConf) throws Exception {
         Security.addProvider(new BouncyCastleProvider());
         this.gson = new Gson();
-        this.ks = KeyStore.getInstance(new File(pathToKeyStore), keyStorePassword.toCharArray()); // TODO a password e
-                                                                                                  // pa entrar aqui?
+        String TLSconfigJSON = new String(Files.readAllBytes(Paths.get(tlsConf)));
+        this.TLSconf = gson.fromJson(TLSconfigJSON, TLSconfig.class);
+
+        this.ks = KeyStore.getInstance("pkcs12");
+        ks.load(new FileInputStream(pathToKeyStore), keyStorePassword.toCharArray());
+        this.ts = KeyStore.getInstance("pkcs12");
+        ts.load(new FileInputStream(pathToTrustStore), trustStorePassword.toCharArray());
+
         this.keyStorePassword = keyStorePassword;
+        this.trustStorePassword = trustStorePassword;
         this.nounces = new HashSet<>();
     }
 
     public TicketCredentials startReceiveTicket(int port) throws Exception {
 
-        serverSocket = new ServerSocket(port);
+        SSLContext sc = SSLContext.getInstance("TLS");
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance("PKIX");
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance("PKIX");
+        kmf.init(ks, keyStorePassword.toCharArray());
+        tmf.init(ts);
+        sc.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
 
-        clientSocket = serverSocket.accept();
+        SSLServerSocketFactory ssf = sc.getServerSocketFactory();
+        serverSocket = (SSLServerSocket) ssf
+                .createServerSocket(port);
+
+        switch (TLSconf.getAuthentication()) {
+            case "MUTUAL":
+                serverSocket.setUseClientMode(false);
+                serverSocket.setNeedClientAuth(true);
+                break;
+            case "SSERVER":
+                serverSocket.setUseClientMode(false);
+                serverSocket.setNeedClientAuth(false);
+                break;
+            case "PROXY":
+                serverSocket.setUseClientMode(true);
+                break;
+        }
+
+        serverSocket.setEnabledProtocols(new String[] { TLSconf.getVersion() });
+        serverSocket.setEnabledCipherSuites(TLSconf.getCiphersuites());
+
+        clientSocket = (SSLSocket) serverSocket.accept();
         out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
         in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         String message;
@@ -110,7 +157,36 @@ public class SRTSP {
     }
 
     public void requestMovie(TicketCredentialsReturn ticketCredentials) throws Exception {
-        clientSocket = new Socket(ticketCredentials.getIp(), Integer.parseInt(ticketCredentials.getPort()));
+        SSLContext sc = SSLContext.getInstance("TLS");
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance("PKIX");
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance("PKIX");
+        kmf.init(ks, keyStorePassword.toCharArray());
+        tmf.init(ts);
+        sc.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+
+        SSLSocketFactory factory = (SSLSocketFactory) sc.getSocketFactory();
+        clientSocket = (SSLSocket)factory.createSocket(ticketCredentials.getIp(), Integer.parseInt(ticketCredentials.getPort()));
+
+        switch (TLSconf.getAuthentication()) {
+            case "MUTUAL": // Nothing to do
+
+            case "SSERVER":
+                // I, proxy will be the DTLS client endpoint
+                clientSocket.setUseClientMode(true);
+                break;
+            case "PROXY":
+                // I, proxy will be the DTLS server endpoint
+                // not requiring the server side authentication
+                clientSocket.setUseClientMode(false);
+                clientSocket.setNeedClientAuth(false);
+                break;
+        }
+
+        clientSocket.setEnabledProtocols(new String[] { TLSconf.getVersion() });
+        clientSocket.setEnabledCipherSuites(TLSconf.getCiphersuites());
+
+        clientSocket.startHandshake();
+
         out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
         in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
         String message;
